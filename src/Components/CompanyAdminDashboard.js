@@ -4,32 +4,30 @@ import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = 'http://localhost:5296/api/company-admin';
 
-// Backend'deki AppointmentStatus enum'una karşılık gelen map ve seçenekler
 const STATUS_MAP = {
     Pending: 0,
     Confirmed: 1,
     Cancelled: 2,
     Completed: 3,
 };
-const STATUS_OPTIONS = Object.keys(STATUS_MAP); // ['Pending', 'Confirmed', 'Cancelled', 'Completed']
+const STATUS_OPTIONS = Object.keys(STATUS_MAP);
 
 function CompanyAdminDashboard() {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [message, setMessage] = useState(''); // Başarı mesajları için
-    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // Onay Modalı
-    const [appointmentToDelete, setAppointmentToDelete] = useState(null); // Silinecek randevu ID'si
+    const [message, setMessage] = useState('');
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); 
+    const [appointmentToDelete, setAppointmentToDelete] = useState(null); 
 
     const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
     
-    // Randevuları API'den çeken ana fonksiyon
     const fetchAppointments = useCallback(async () => {
         setLoading(true);
         setError('');
-        setMessage(''); // Yeni çekimde mesajı temizle
+        setMessage(''); 
 
         if (!token) {
             setError("Giriş yapmalısınız. Yönlendiriliyor...");
@@ -67,7 +65,6 @@ function CompanyAdminDashboard() {
     }, [fetchAppointments]);
 
 
-    // Durum Güncelleme İşlevi (UpdateAppointmentStatusCommand)
     const handleStatusUpdate = async (appointmentId, newStatusString) => {
         setMessage('');
         setError('');
@@ -91,7 +88,6 @@ function CompanyAdminDashboard() {
             
             await axios.put(`${API_BASE_URL}/appointments/update`, command, config);
             
-            // Başarılı güncelleme sonrası listeyi YENİDEN ÇEK
             await fetchAppointments();
             setMessage(`Randevu (${appointmentId.substring(0, 8)}...) durumu başarıyla "${newStatusString}" olarak güncellendi.`);
 
@@ -103,21 +99,16 @@ function CompanyAdminDashboard() {
         }
     };
     
-    // Silme Onayını Başlatma Fonksiyonu
     const confirmDelete = (appointmentId) => {
-        // Hata ve mesajları temizle
         setError('');
         setMessage('');
-        // Silinecek ID'yi state'e at ve modalı aç
         setAppointmentToDelete(appointmentId);
         setIsConfirmModalOpen(true);
     };
 
-    // Randevu Silme İşlevi (DeleteAppointmentByIdCommand)
     const handleDeleteAppointment = async () => {
-        if (!appointmentToDelete) return; // ID yoksa işlemi durdur
+        if (!appointmentToDelete) return;
 
-        // Modalı hemen kapat, işlem sırasında butonu yükleniyor yapamayız
         setIsConfirmModalOpen(false);
         setMessage(`Randevu (${appointmentToDelete.substring(0, 8)}...) siliniyor...`);
         setError('');
@@ -127,10 +118,8 @@ function CompanyAdminDashboard() {
                 headers: { 'Authorization': `Bearer ${token}` }
             };
             
-            // DELETE isteği (Backend'de {id} parametresini kullanıyoruz)
             await axios.delete(`${API_BASE_URL}/appointments/delete/${appointmentToDelete}`, config);
             
-            // Başarılı silme sonrası listeyi YENİDEN ÇEK
             await fetchAppointments();
             setMessage(`Randevu başarıyla silindi.`);
 
@@ -140,7 +129,7 @@ function CompanyAdminDashboard() {
             setError(backendError);
             
         } finally {
-            setAppointmentToDelete(null); // İşlem bitince ID'yi temizle
+            setAppointmentToDelete(null);
         }
     };
 
@@ -162,11 +151,11 @@ function CompanyAdminDashboard() {
     
     const getStatusColor = (status) => {
         switch(status) {
-            case 'Confirmed': return '#38a169'; // Yeşil
-            case 'Cancelled': return '#e53e3e'; // Kırmızı
-            case 'Completed': return '#2b6cb0'; // Mavi
+            case 'Confirmed': return '#38a169';
+            case 'Cancelled': return '#e53e3e';
+            case 'Completed': return '#2b6cb0';
             case 'Pending':
-            default: return '#dd6b20'; // Turuncu
+            default: return '#dd6b20';
         }
     };
 
@@ -190,7 +179,6 @@ function CompanyAdminDashboard() {
                 <button onClick={handleLogout} style={styles.logoutButton}>Çıkış Yap</button>
             </div>
             
-            {/* Başarı ve Hata Mesajları */}
             {message && <div style={styles.successMessage}>{message}</div>}
 
             <h2 style={styles.subtitle}>Firmanızın Randevuları ({appointments.length})</h2>
@@ -207,7 +195,7 @@ function CompanyAdminDashboard() {
                                 <th style={styles.th}>Notlar</th>
                                 <th style={styles.th}>Mevcut Durum</th>
                                 <th style={styles.th}>Durum Güncelle</th>
-                                <th style={styles.th}>İşlemler</th> {/* Yeni Sütun */}
+                                <th style={styles.th}>İşlemler</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -235,7 +223,6 @@ function CompanyAdminDashboard() {
                                             ))}
                                         </select>
                                     </td>
-                                    {/* İşlemler Sütunu */}
                                     <td style={styles.td}>
                                         <button 
                                             onClick={() => confirmDelete(app.id)} 
@@ -250,7 +237,6 @@ function CompanyAdminDashboard() {
                 </div>
             )}
             
-            {/* Silme Onay Modalı */}
             {isConfirmModalOpen && (
                 <div style={styles.modalOverlay}>
                     <div style={styles.modalContent}>
@@ -280,7 +266,6 @@ function CompanyAdminDashboard() {
     );
 }
 
-// Sade ve Yöneticiye Uygun CSS Stilleri
 const styles = {
     container: {
         maxWidth: '1200px',
@@ -376,9 +361,9 @@ const styles = {
         cursor: 'pointer',
         backgroundColor: 'white',
     },
-    deleteButton: { // Yeni Sil Butonu Stili
+    deleteButton: {
         padding: '6px 10px',
-        backgroundColor: '#f56565', // Kırmızı Ton
+        backgroundColor: '#f56565',
         color: 'white',
         border: 'none',
         borderRadius: '4px',
@@ -425,7 +410,6 @@ const styles = {
         fontSize: '18px', 
         marginBottom: '20px',
     },
-    // --- Modal Stilleri (Onay İçin) ---
     modalOverlay: {
         position: 'fixed',
         top: 0,
@@ -473,9 +457,9 @@ const styles = {
         fontWeight: '600',
         transition: 'background-color 0.2s',
     },
-    confirmDeleteButton: { // Silme butonu için daha çarpıcı renk
+    confirmDeleteButton: {
         padding: '10px 20px',
-        backgroundColor: '#c53030', // Daha koyu kırmızı
+        backgroundColor: '#c53030',
         color: 'white',
         border: 'none',
         borderRadius: '5px',
